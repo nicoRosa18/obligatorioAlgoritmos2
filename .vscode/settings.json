@@ -1,0 +1,14 @@
+{
+    "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "cstdlib": "cpp",
+        "*.cp": "cpp",
+        "*.tcc": "cpp",
+        "string": "cpp",
+        "iosfwd": "cpp",
+        "ostream": "cpp",
+        "initializer_list": "cpp",
+        "limits": "cpp",
+        "type_traits": "cpp"
+    }
+}
