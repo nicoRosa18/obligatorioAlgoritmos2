@@ -9,6 +9,7 @@
         "ostream": "cpp",
         "initializer_list": "cpp",
         "limits": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "new": "cpp"
     }
 }

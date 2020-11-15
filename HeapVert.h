@@ -2,29 +2,51 @@
 #define HEAP_VERTICE_H
 
 #include <iostream>
+//#include "Graph.h"
 using namespace std;
 
-#define INITIAL_SIZE 10
 
+struct EdgeListNode {
+      int toVertex;
+      int weight;
+      EdgeListNode* nextEdge;
+      EdgeListNode(){}
+    };
+
+struct Vertex {
+  int vertex;
+  int grado;
+  int nivel;
+  bool visited;
+  int distance;
+  int path;
+  EdgeListNode* list;
+
+  Vertex() {}
+  Vertex(int v): vertex(v) {}
+
+  bool operator== (Vertex v) {
+    return vertex == v.vertex;
+  }
+};
 
 class HeapVertice {
   public:
-    HeapVertice() {
-      size = INITIAL_SIZE;
-      array = new int[size];
+    HeapVertice(int cantV) {
+      size = cantV;
+      array = new Vertex*[size];
       items = 0;
     }
 
-    void insert(int data) {
+    void insert(Vertex* v) {
       items++;
       unsigned int hole = items;
-      array[hole] = data;
-
+      array[hole] = v;
       percolateUp(hole);
     }
 
     bool isEmpty() {
-      return false;
+      return items==0;
     }
 
     // PRE: heap is not empty
@@ -32,40 +54,45 @@ class HeapVertice {
       unsigned int hole = 1;
       array[hole] = array[items];
       items--;
+       cont++;
       percolateDown(hole);
     }
 
     // PRE: heap is not empty
-    int min() {
+    Vertex* min() {
       return array[1];
     }
 
 
   private:
-    int* array;
+    Vertex** array;
+      int cont;
     unsigned int size;
     unsigned int items;
 
-    // filtrado hacia arriba
-    void percolateUp(unsigned int hole) {
-      while (hole > 1 && array[hole] < array[hole / 2]) {
-        swap(array[hole], array[hole / 2]);
-        hole /= 2;
+ void percolateUp(unsigned int hole)
+    {
+      while(hole>1 && (array[hole]->nivel<array[hole/2]->nivel||(array[hole]->nivel==array[hole/2]->nivel&&array[hole]->vertex<array[hole/2]->vertex))){
+          swap(array[hole], array[hole / 2]);
+          hole /= 2;
+        }
       }
-    }
 
-    // filtrado hacia abajo
-    void percolateDown(unsigned int hole) {
+  void percolateDown(unsigned int hole) {
       while (hole * 2 <= items) {
         unsigned int child = hole * 2;
-        if (child + 1 <= items && array[child + 1] < array[child])
-          child++;
-
-        if (array[child] < array[hole]) {
-          swap(array[child], array[hole]);
-          hole = child;
+        if(child + 1 <=items&& (array[child+1]->nivel <array[child]->nivel||((array[child+1]->nivel ==array[child]->nivel)&&(array[child+1]->vertex < array[child]->vertex))))
+        child++;
+        int nivelchild=array[child]->nivel;
+        int nivelhole=array[hole]->nivel;
+        int chi=array[child]->vertex;
+        int hol=array[hole]->vertex;
+        if(array[child]->nivel<array[hole]->nivel||(array[hole]->nivel==array[child]->nivel&&array[child]->vertex<array[hole]->vertex)){
+        swap(array[child], array[hole]);
+        hole = child;
         } else break;
       }
+
     }
 };
 

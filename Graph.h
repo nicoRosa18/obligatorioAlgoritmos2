@@ -1,48 +1,45 @@
 #ifndef GRAPH_H
 #define GRAPH_H
-#include "HeapVert.h"
 #include <iostream>
+#include "HeapVert.h"
 using namespace std;
-
-
 
 
 template <class V, class W>
 class Graph {
+ 
   public:
     Graph(int cantV) {
       listSize = cantV;
       vertices = 0;
-      adjacencyList = new Node*[listSize];
-      verticeOrdenadoxEnt= new Node*[listSize];
-      nivel0= new HeapVertice();    
+      cont=1;
+      adjacencyList = new Vertex*[listSize];
+      vertOrd= new Vertex*[listSize];
       for (unsigned int i = 0; i < listSize; i++){
         adjacencyList[i] = NULL;
-        verticeOrdenadoxEnt[i]=NULL;
+        vertOrd[i]=NULL;
       }
     }
 
     // PRE: vertex does not belong to graph
     void addVertex(V vertex) {
-      Node* node = new Node;
+      Vertex* node = new Vertex;
       node->vertex = vertex;
       node->list = NULL;
+      node->nivel=999;
       vertices++;
-      node->pos=vertices;
       adjacencyList[vertices] = node;
-      verticeOrdenadoxEnt[vertices]=node;
     }
 
     // PRE: edge between from and to does not exist in the graph
     //      from, to vertices belong to the graph
-    void addEdge(V from, V to, W weight) {
-      Node* node = adjacencyList[from];
-      Node* nodoTo=adjacencyList[to];
+    void addEdge(V from, V to, V cost) {
+      Vertex* node = adjacencyList[from];
+      Vertex* nodoTo=adjacencyList[to];
       EdgeListNode* edgeNode = new EdgeListNode;
       edgeNode->toVertex = to;
-      nodoTo->gradoEntrada++;
-      percolateDown(nodoTo->pos);
-      edgeNode->weight = weight;
+      nodoTo->grado++;
+      edgeNode->weight=cost;
       edgeNode->nextEdge = node->list;
       node->list = edgeNode;
     }
@@ -51,15 +48,34 @@ class Graph {
       return vertices;
     }
 
-    V* getVertices() {
-      V* verticesVec = new V[vertices];
-      for (unsigned int i = 1; i < vertices; i++)
-        verticesVec[i] = adjacencyList[i]->vertex;     
+    Vertex** getVertices() {
+      Vertex** verticesVec = new Vertex*[vertices+1];
+      for (unsigned int i = 1; i <= vertices; i++)
+        verticesVec[i] = adjacencyList[i];     
       return verticesVec;
     }
 
+    HeapVertice* getVerticesAdyacentes(Vertex* v){
+      int cantVertAdy=0;
+      EdgeListNode* vertAd= v->list;
+      while(vertAd){
+        cantVertAdy++;
+        vertAd=vertAd->nextEdge;
+      }
+      HeapVertice* verticesAdyacentes= new HeapVertice(cantVertAdy);
+     // Vertex** verticesAdyacentes= new Vertex*[cantVertAdy];
+      vertAd= v->list;
+      while (vertAd)
+      {     
+        verticesAdyacentes->insert(adjacencyList[vertAd->toVertex]);
+        vertAd=vertAd->nextEdge;
+      }    
+    return verticesAdyacentes;
+    }
+
+
     bool hasEdge(V from, V to) {
-      Node* node = getVertexNode(from);
+      Vertex* node = adjacencyList[from];
       EdgeListNode *edgeNode = node->list;
 
       while (edgeNode != NULL) {
@@ -73,7 +89,7 @@ class Graph {
 
     // PRE: edge between from and to exists in graph
     W getEdge(V from, V to) {
-      Node* node = getVertexNode(from);
+      Vertex* node =adjacencyList[from];
       EdgeListNode *edgeNode = node->list;
 
       while (edgeNode != NULL) {
@@ -85,72 +101,10 @@ class Graph {
       return 0;
     }
 
-   int eliminarMinVertice(){
-     if(nivel0->isEmpty()){
-       int mmin=nivel0->min();
-       Node* aEliminar=adjacencyList[mmin];
-     }else{
-      Node* aEliminar= verticeOrdenadoxEnt[1];
-     }
-      int vert=aEliminar->vertex;
-      EdgeListNode* listaE= aEliminar->list;
-      bool nivelVacio=nivel0->isEmpty();
-      while(listaE){
-        Node* aVertice= adjacencyList[listaE->toVertex];
-        aVertice->gradoEntrada--;
-        if(nivelVacio){
-          nivel0->insert(aVertice);
-        }
-        percolateUp(aVertice->pos);
-        listaE=listaE->nextEdge;
-     }
-     verticeOrdenadoxEnt[1]=verticeOrdenadoxEnt[vertices];
-     vertices--;
-     return vert; 
-    }
-
-  private:
-    struct EdgeListNode {
-      V toVertex;
-      W weight;
-      EdgeListNode* nextEdge;
-    };
-  
-    struct Node {
-      V vertex;
-      int pos;
-      int gradoEntrada;
-      EdgeListNode* list;
-    };
-    HeapVertice* nivel0;
-    Node** adjacencyList;
-    Node** verticeOrdenadoxEnt;
+    int cont;
+    Vertex** adjacencyList;
+    Vertex** vertOrd;
     unsigned int listSize;
     unsigned int vertices;
-
-
-    void percolateUp(unsigned int hole) {
-      while (hole > 1 && verticeOrdenadoxEnt[hole]->gradoEntrada < verticeOrdenadoxEnt[hole / 2]->gradoEntrada) {
-        swap(verticeOrdenadoxEnt[hole], verticeOrdenadoxEnt[hole / 2]);
-        hole /= 2;
-      }
-    } 
-
-  void percolateDown(unsigned int hole) {
-      while (hole * 2 <= vertices) {
-        unsigned int child = hole * 2;
-        if (child + 1 <= vertices && verticeOrdenadoxEnt[child + 1]->gradoEntrada < verticeOrdenadoxEnt[child]->gradoEntrada)
-          child++;
-
-        if (verticeOrdenadoxEnt[child]->gradoEntrada < verticeOrdenadoxEnt[hole]->gradoEntrada||((verticeOrdenadoxEnt[child]->gradoEntrada == verticeOrdenadoxEnt[hole]->gradoEntrada)&&(verticeOrdenadoxEnt[child]->vertex < verticeOrdenadoxEnt[hole]->vertex))) {
-          swap(verticeOrdenadoxEnt[child], verticeOrdenadoxEnt[hole]);
-          int aux=verticeOrdenadoxEnt[child]->pos;
-          verticeOrdenadoxEnt[child]->pos=verticeOrdenadoxEnt[hole]->pos;
-          verticeOrdenadoxEnt[hole]->pos=aux;
-          hole = child;
-        } else break;
-      }
-    }
 };
-
 #endif
